@@ -1,0 +1,10 @@
+[package]
+name = "AdWatch"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+serde = { version = "1.0", features = ["derive"] }
+reqwest = { version = "0.12.12", features = ["json"] }
+crossterm = "0.28.1"
+tui = "0.19"
