@@ -69,7 +69,7 @@ struct Question {
     question_type: String,
 }
 
-async fn fetch_adwatch_data(
+async fn fetch_adguard_data(
     client: &reqwest::Client,
     endpoint: &str,
     username: &str,
@@ -168,7 +168,7 @@ async fn draw_ui(data: Vec<Query>) -> Result<(), Box<dyn std::error::Error>> {
         terminal.draw(|f| {
             let size = f.size();
             let block = Block::default()
-                .title("AdWatch Dashboard")
+                .title("AdGuard Dashboard")
                 .borders(Borders::ALL)
                 .style(Style::default().fg(Color::White));
             f.render_widget(block, size);
@@ -277,7 +277,7 @@ async fn run() -> Result<(), Box<dyn std::error::Error>> {
     let hostname = "http://192.168.130.2:8083";
     let username = "admin";
     let password = "uPbxy1G8g0xO83nw";
-    let data = fetch_adwatch_data(&client, hostname, username, password).await?;
+    let data = fetch_adguard_data(&client, hostname, username, password).await?;
     draw_ui(data.data).await
 }
 
