@@ -1,5 +1,6 @@
 // Import modules, and types
 use std::io::{stdout};
+use std::sync::Arc;
 use std::time::Duration;
 
 use serde::Deserialize;
@@ -22,6 +23,8 @@ use tui::{
     widgets::{Block, Borders, Cell, Row, Table},
     Terminal,
 };
+
+use futures::future::FutureExt;
 
 #[derive(Deserialize)]
 struct QueryResponse {
@@ -166,7 +169,10 @@ fn block_status_text(reason: &str, cached: bool) -> (String, Color) {
 }
 
 
-async fn draw_ui(mut data_rx: tokio::sync::mpsc::Receiver<Vec<Query>>) -> Result<(), anyhow::Error> {
+async fn draw_ui(
+    mut data_rx: tokio::sync::mpsc::Receiver<Vec<Query>>, 
+    shutdown: Arc<tokio::sync::Notify>
+) -> Result<(), anyhow::Error> {
     enable_raw_mode()?;
     let mut stdout = stdout();
     execute!(stdout, EnterAlternateScreen, EnableMouseCapture)?;
@@ -248,15 +254,24 @@ async fn draw_ui(mut data_rx: tokio::sync::mpsc::Receiver<Vec<Query>>) -> Result
                 Event::Key(KeyEvent {
                     code: KeyCode::Char('q'),
                     ..
-                }) => break,
+                }) => {
+                    shutdown.notify_waiters();
+                    break;
+                }
                 Event::Key(KeyEvent {
                     code: KeyCode::Char('Q'),
                     ..
-                }) => break,
+                }) => {
+                    shutdown.notify_waiters();
+                    break;
+                }
                 Event::Key(KeyEvent {
                     code: KeyCode::Char('c'),
                     modifiers: KeyModifiers::CONTROL,
-                }) => break,
+                }) => {
+                    shutdown.notify_waiters();
+                    break;
+                }
                 Event::Resize(_, _) => {}, // Handle resize event, loop will redraw the UI
                 _ => {}
             }
@@ -273,10 +288,14 @@ async fn draw_ui(mut data_rx: tokio::sync::mpsc::Receiver<Vec<Query>>) -> Result
     Ok(())
 }
 
+
 async fn run() -> Result<(), anyhow::Error> {
+    
+    let shutdown = Arc::new(tokio::sync::Notify::new());
+    
     let (data_tx, data_rx) = tokio::sync::mpsc::channel(1);
 
-    let draw_ui_task = tokio::spawn(draw_ui(data_rx));
+    let draw_ui_task = tokio::spawn(draw_ui(data_rx, Arc::clone(&shutdown)));
 
     let client = Client::new();
     let hostname = "http://192.168.130.2:8083";
@@ -288,6 +307,9 @@ async fn run() -> Result<(), anyhow::Error> {
         let data = fetch_adguard_data(&client, hostname, username, password).await?;
         data_tx.send(data.data).await;
         interval.tick().await;
+        if shutdown.notified().now_or_never().is_some() {
+            break;
+        }
     }
 
     draw_ui_task.await??;
