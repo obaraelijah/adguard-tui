@@ -1,30 +1,24 @@
 // Import modules, and types
-
-// use std::error::Error;
-use std::io::stdout;
+use std::io::{stdout};
 use std::time::Duration;
 
-use reqwest::header::{HeaderValue, AUTHORIZATION, CONTENT_LENGTH};
-use reqwest::Client;
 use serde::Deserialize;
+use reqwest::Client;
+use reqwest::header::{HeaderValue, CONTENT_LENGTH, AUTHORIZATION};
 
-use crossterm::event::{
-    poll, read, DisableMouseCapture, EnableMouseCapture, Event, KeyCode, KeyEvent, KeyModifiers,
-};
+use crossterm::event::{poll, read, DisableMouseCapture, EnableMouseCapture, Event, KeyCode, KeyEvent, KeyModifiers};
 use crossterm::execute;
-use crossterm::terminal::{
-    disable_raw_mode, enable_raw_mode, EnterAlternateScreen, LeaveAlternateScreen,
-};
+use crossterm::terminal::{disable_raw_mode, enable_raw_mode, EnterAlternateScreen, LeaveAlternateScreen};
 
-use chrono::{DateTime, TimeZone, Utc};
+use chrono::{DateTime, Utc, TimeZone};
 
-use anyhow::Error;
 use tokio::time::interval;
+use anyhow::Error;
 
 use tui::{
     backend::CrosstermBackend,
-    layout::{Constraint, Direction, Layout, Rect},
-    style::{Color, Modifier, Style},
+    layout::{Rect, Constraint, Direction, Layout},
+    style::{Color, Style, Modifier},
     widgets::{Block, Borders, Cell, Row, Table},
     Terminal,
 };
@@ -82,12 +76,6 @@ async fn fetch_adguard_data(
     username: &str,
     password: &str,
 ) -> Result<QueryResponse, anyhow::Error> {
-    // async fn fetch_adguard_data(
-    //     client: &reqwest::Client,
-    //     endpoint: &str,
-    //     username: &str,
-    //     password: &str,
-    // ) -> Result<QueryResponse, Box<dyn Error>> {
     let auth_string = format!("{}:{}", username, password);
     let auth_header_value = format!("Basic {}", base64::encode(&auth_string));
     let mut headers = reqwest::header::HeaderMap::new();
@@ -97,20 +85,13 @@ async fn fetch_adguard_data(
     let url = format!("{}/control/querylog", endpoint);
     let response = client.get(&url).headers(headers).send().await?;
     if !response.status().is_success() {
-        return Err(anyhow::anyhow!(
-            "Request failed with status code {}",
-            response.status()
-        ));
+        return Err(anyhow::anyhow!("Request failed with status code {}", response.status()));
     }
-
-    // let response_text = response.text().await?;
-    // println!("Response JSON: {}", response_text);
-    // let data: QueryResponse = serde_json::from_str(&response_text)?;
-    // Ok(data)
 
     let data = response.json().await?;
     Ok(data)
 }
+
 
 fn time_ago(timestamp: &str) -> Result<String, anyhow::Error> {
     let datetime = DateTime::parse_from_rfc3339(timestamp)?;
@@ -127,12 +108,10 @@ fn time_ago(timestamp: &str) -> Result<String, anyhow::Error> {
 }
 
 fn make_request_cell(q: &Question) -> Result<String, anyhow::Error> {
-    // fn make_request_cell(q: &Question) -> Result<String, Box<dyn std::error::Error>> {
     Ok(format!("[{}] {} - {}", q.class, q.question_type, q.name))
 }
 
 fn make_time_taken_and_color(elapsed: &str) -> Result<(String, Color), anyhow::Error> {
-    // fn make_time_taken_and_color(elapsed: &str) -> Result<(String, Color), Box<dyn std::error::Error>> {
     let elapsed_f64 = elapsed.parse::<f64>()?;
     let rounded_elapsed = (elapsed_f64 * 100.0).round() / 100.0;
     let time_taken = format!("{:.2} ms", rounded_elapsed);
@@ -147,7 +126,6 @@ fn make_time_taken_and_color(elapsed: &str) -> Result<(String, Color), anyhow::E
 }
 
 fn make_time_taken(elapsed: &str) -> Result<String, anyhow::Error> {
-    // fn make_time_taken(elapsed: &str) -> Result<String, Box<dyn std::error::Error>> {
     let elapsed_f64 = elapsed.parse::<f64>()?;
     let rounded_elapsed = (elapsed_f64 * 100.0).round() / 100.0;
     Ok(format!("{:.2} ms", rounded_elapsed))
@@ -170,11 +148,12 @@ fn make_row_color(reason: &str) -> Color {
         Color::Red
     } else {
         Color::Yellow
-    };
+    }
 }
 
 fn block_status_text(reason: &str, cached: bool) -> (String, Color) {
-    let (text, color) = if reason == "FilteredBlackList" {
+    let (text, color) =
+    if reason == "FilteredBlackList" {
         ("Blacklisted".to_string(), Color::Red)
     } else if cached == true {
         ("Cached".to_string(), Color::Cyan)
@@ -186,17 +165,15 @@ fn block_status_text(reason: &str, cached: bool) -> (String, Color) {
     (text, color)
 }
 
-// async fn draw_ui(data: Vec<Query>) -> Result<(), Box<dyn std::error::Error>> {
-async fn draw_ui(
-    mut data_rx: tokio::sync::mpsc::Receiver<Vec<Query>>,
-) -> Result<(), anyhow::Error> {
-    // async fn draw_ui(mut data_rx: tokio::sync::mpsc::Receiver<Vec<Query>>) -> Result<(), Box<dyn std::error::Error>> {
+
+async fn draw_ui(mut data_rx: tokio::sync::mpsc::Receiver<Vec<Query>>) -> Result<(), anyhow::Error> {
     enable_raw_mode()?;
     let mut stdout = stdout();
     execute!(stdout, EnterAlternateScreen, EnableMouseCapture)?;
     let backend = CrosstermBackend::new(stdout);
     let mut terminal = Terminal::new(backend)?;
     terminal.clear()?;
+
 
     loop {
         let data = match data_rx.recv().await {
@@ -212,26 +189,25 @@ async fn draw_ui(
             f.render_widget(block, size);
 
             let rows = data.iter().map(|query| {
-                let time =
-                    Cell::from(time_ago(query.time.as_str()).unwrap_or("unknown".to_string()))
-                        .style(Style::default().fg(Color::Gray));
-
+                
+                let time = Cell::from(
+                    time_ago(query.time.as_str()).unwrap_or("unknown".to_string())
+                ).style(Style::default().fg(Color::Gray));
+                
                 let question = Cell::from(make_request_cell(&query.question).unwrap())
                     .style(Style::default().add_modifier(Modifier::BOLD));
-
-                let client =
-                    Cell::from(query.client.as_str()).style(Style::default().fg(Color::Blue));
-
-                let (time_taken, elapsed_color) =
-                    make_time_taken_and_color(&query.elapsed_ms).unwrap();
+                
+                let client = Cell::from(query.client.as_str())
+                    .style(Style::default().fg(Color::Blue));
+                
+                let (time_taken, elapsed_color) = make_time_taken_and_color(&query.elapsed_ms).unwrap();
                 let elapsed_ms = Cell::from(time_taken).style(Style::default().fg(elapsed_color));
-
+                                    
                 let (status_txt, status_color) = block_status_text(&query.reason, query.cached);
                 let status = Cell::from(status_txt).style(Style::default().fg(status_color));
-
+                    
                 let color = make_row_color(&query.reason);
-                Row::new(vec![time, question, status, client, elapsed_ms])
-                    .style(Style::default().fg(color))
+                Row::new(vec![time, question, status, client, elapsed_ms]).style(Style::default().fg(color))
             });
 
             let table = Table::new(rows)
@@ -254,7 +230,13 @@ async fn draw_ui(
             let chunks = Layout::default()
                 .direction(Direction::Vertical)
                 .margin(1)
-                .constraints([Constraint::Length(3), Constraint::Min(1)].as_ref())
+                .constraints(
+                    [
+                        Constraint::Length(3),
+                        Constraint::Min(1),
+                    ]
+                    .as_ref(),
+                )
                 .split(size);
 
             f.render_widget(table, chunks[1]);
@@ -275,7 +257,7 @@ async fn draw_ui(
                     code: KeyCode::Char('c'),
                     modifiers: KeyModifiers::CONTROL,
                 }) => break,
-                Event::Resize(_, _) => {} // Handle resize event, loop will redraw the UI
+                Event::Resize(_, _) => {}, // Handle resize event, loop will redraw the UI
                 _ => {}
             }
         }
@@ -292,7 +274,6 @@ async fn draw_ui(
 }
 
 async fn run() -> Result<(), anyhow::Error> {
-    // async fn run() -> Result<(), Box<dyn std::error::Error>> {
     let (data_tx, data_rx) = tokio::sync::mpsc::channel(1);
 
     let draw_ui_task = tokio::spawn(draw_ui(data_rx));
@@ -313,22 +294,7 @@ async fn run() -> Result<(), anyhow::Error> {
     Ok(())
 }
 
-// async fn run() -> Result<(), Box<dyn std::error::Error>> {
-//     let client = Client::new();
-//     let hostname = "http://192.168.130.2:8083";
-//     let username = "admin";
-//     let password = "uPbxy1G8g0xO83nw";
-//     let mut interval = interval(Duration::from_secs(5));
-
-//     loop {
-//         let data = fetch_adguard_data(&client, hostname, username, password).await?;
-//         draw_ui(data.data).await?;
-//         interval.tick().await;
-//     }
-// }
-
 fn main() -> Result<(), anyhow::Error> {
-    // fn main() -> Result<(), Box<dyn std::error::Error>> {
     let rt = tokio::runtime::Builder::new_current_thread()
         .enable_all()
         .build()?;
