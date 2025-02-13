@@ -1,30 +1,30 @@
 // Import modules, and types
-use std::io::{stdout};
-use std::sync::Arc;
-use std::time::Duration;
+use std::{
+    io::stdout,
+    sync::Arc,
+    time::Duration,
+};
 
+use chrono::{DateTime, Utc};
+use crossterm::{
+    event::{poll, read, DisableMouseCapture, EnableMouseCapture, Event, KeyCode, KeyEvent, KeyModifiers},
+    execute,
+    terminal::{disable_raw_mode, enable_raw_mode, EnterAlternateScreen, LeaveAlternateScreen},
+};
+use futures::future::FutureExt;
+use reqwest::{
+    Client,
+    header::{HeaderValue, CONTENT_LENGTH, AUTHORIZATION},
+};
 use serde::Deserialize;
-use reqwest::Client;
-use reqwest::header::{HeaderValue, CONTENT_LENGTH, AUTHORIZATION};
-
-use crossterm::event::{poll, read, DisableMouseCapture, EnableMouseCapture, Event, KeyCode, KeyEvent, KeyModifiers};
-use crossterm::execute;
-use crossterm::terminal::{disable_raw_mode, enable_raw_mode, EnterAlternateScreen, LeaveAlternateScreen};
-
-use chrono::{DateTime, Utc, TimeZone};
-
 use tokio::time::interval;
-use anyhow::Error;
-
 use tui::{
     backend::CrosstermBackend,
-    layout::{Rect, Constraint, Direction, Layout},
-    style::{Color, Style, Modifier},
+    layout::{Constraint, Direction, Layout},
+    style::{Color, Modifier, Style},
     widgets::{Block, Borders, Cell, Row, Table},
     Terminal,
 };
-
-use futures::future::FutureExt;
 
 #[derive(Deserialize)]
 struct QueryResponse {
@@ -33,37 +33,37 @@ struct QueryResponse {
 
 #[derive(Deserialize)]
 struct Query {
-    answer: Option<Vec<Answer>>,
-    answer_dnssec: bool,
+    // answer: Option<Vec<Answer>>,
+    // answer_dnssec: bool,
     cached: bool,
     client: String,
-    client_info: ClientInfo,
-    client_proto: String,
+    // client_info: ClientInfo,
+    // client_proto: String,
     #[serde(rename = "elapsedMs")]
     elapsed_ms: String,
     question: Question,
     reason: String,
     // rules: Vec<String>,
-    status: String,
+    // status: String,
     time: String,
-    upstream: String,
+    // upstream: String,
 }
 
-#[derive(Deserialize)]
-struct Answer {
-    #[serde(rename = "type")]
-    answer_type: String,
-    value: String,
-    ttl: u32,
-}
+// #[derive(Deserialize)]
+// struct Answer {
+//     #[serde(rename = "type")]
+//     answer_type: String,
+//     value: String,
+//     ttl: u32,
+// }
 
-#[derive(Deserialize)]
-struct ClientInfo {
-    whois: serde_json::Value,
-    name: String,
-    disallowed_rule: String,
-    disallowed: bool,
-}
+// #[derive(Deserialize)]
+// struct ClientInfo {
+//     whois: serde_json::Value,
+//     name: String,
+//     disallowed_rule: String,
+//     disallowed: bool,
+// }
 
 #[derive(Deserialize)]
 struct Question {
@@ -126,22 +126,6 @@ fn make_time_taken_and_color(elapsed: &str) -> Result<(String, Color), anyhow::E
         Color::Red
     };
     Ok((time_taken, color))
-}
-
-fn make_time_taken(elapsed: &str) -> Result<String, anyhow::Error> {
-    let elapsed_f64 = elapsed.parse::<f64>()?;
-    let rounded_elapsed = (elapsed_f64 * 100.0).round() / 100.0;
-    Ok(format!("{:.2} ms", rounded_elapsed))
-}
-
-fn elapsed_time_color(elapsed: f64) -> Color {
-    if elapsed < 1.0 {
-        Color::Green
-    } else if elapsed >= 1.0 && elapsed <= 20.0 {
-        Color::Yellow
-    } else {
-        Color::Red
-    }
 }
 
 fn make_row_color(reason: &str) -> Color {
@@ -276,6 +260,7 @@ async fn draw_ui(
                 _ => {}
             }
         }
+
     }
 
     terminal.show_cursor()?;
@@ -290,9 +275,9 @@ async fn draw_ui(
 
 
 async fn run() -> Result<(), anyhow::Error> {
-    
+
     let shutdown = Arc::new(tokio::sync::Notify::new());
-    
+
     let (data_tx, data_rx) = tokio::sync::mpsc::channel(1);
 
     let draw_ui_task = tokio::spawn(draw_ui(data_rx, Arc::clone(&shutdown)));
