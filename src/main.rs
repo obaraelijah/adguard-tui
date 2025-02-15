@@ -3,8 +3,7 @@ mod fetch_stats;
 mod ui;
 
 use fetch::fetch_adguard_data;
-use fetch_stats::{fetch_adguard_stats, StatsResponse};
-use futures::future::FutureExt;
+use fetch_stats::fetch_adguard_stats;
 use reqwest::Client;
 use std::{sync::Arc, time::Duration};
 use tokio::time::interval;
@@ -23,18 +22,24 @@ async fn run() -> Result<(), anyhow::Error> {
     let hostname = "http://192.168.130.2:8083";
     let username = "admin";
     let password = "uPbxy1G8g0xO83nw";
-    let mut interval = interval(Duration::from_secs(5));
+    let mut interval = interval(Duration::from_secs(3));
 
     loop {
-        let data = fetch_adguard_data(&client, hostname, username, password).await?;
-        data_tx.send(data.data).await;
+        tokio::select! {
+            _ = interval.tick() => {
+                let data = fetch_adguard_data(&client, hostname, username, password).await?;
+                if data_tx.try_send(data.data).is_err() {
+                    break;
+                }
 
-        let stats = fetch_adguard_stats(&client, hostname, username, password).await?;
-        stats_tx.send(stats).await;
-
-        interval.tick().await;
-        if shutdown.notified().now_or_never().is_some() {
-            break;
+                let stats = fetch_adguard_stats(&client, hostname, username, password).await?;
+                if stats_tx.try_send(stats).is_err() {
+                    break;
+                }
+            }
+            _ = shutdown.notified() => {
+                break;
+            }
         }
     }
 
