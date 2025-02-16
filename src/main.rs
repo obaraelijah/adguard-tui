@@ -1,14 +1,13 @@
 mod fetch;
-mod fetch_stats;
 mod ui;
 mod widgets;
 
-use fetch::fetch_adguard_data;
-use fetch_stats::fetch_adguard_stats;
-use ui::draw_ui;
-use std::{sync::Arc, time::Duration};
+use fetch::fetch_query_log::fetch_adguard_query_log;
+use fetch::fetch_stats::fetch_adguard_stats;
 use reqwest::Client;
+use std::{sync::Arc, time::Duration};
 use tokio::time::interval;
+use ui::draw_ui;
 
 async fn run() -> Result<(), anyhow::Error> {
     let shutdown = Arc::new(tokio::sync::Notify::new());
@@ -28,7 +27,7 @@ async fn run() -> Result<(), anyhow::Error> {
     loop {
         tokio::select! {
             _ = interval.tick() => {
-                let data = fetch_adguard_data(&client, hostname, username, password).await?;
+                let data = fetch_adguard_query_log(&client, hostname, username, password).await?;
                 if data_tx.try_send(data.data).is_err() {
                     break;
                 }

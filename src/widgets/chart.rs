@@ -5,7 +5,7 @@ use tui::{
     widgets::{Axis, Block, Borders, Chart, Dataset},
 };
 
-use crate::fetch_stats::StatsResponse;
+use crate::fetch::fetch_stats::StatsResponse;
 
 pub fn make_history_chart<'a>(stats: &'a StatsResponse) -> Chart<'a> {
     // Convert datasets into vector that can be consumed by chart

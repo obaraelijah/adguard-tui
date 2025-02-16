@@ -14,8 +14,8 @@ use tui::{
     Terminal,
 };
 
-use crate::fetch::Query;
-use crate::fetch_stats::StatsResponse;
+use crate::fetch::fetch_query_log::Query;
+use crate::fetch::fetch_stats::StatsResponse;
 
 use crate::widgets::chart::{make_history_chart, prepare_chart_data};
 use crate::widgets::gauge::make_gauge;

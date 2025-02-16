@@ -6,7 +6,7 @@ use tui::{
     widgets::{Block, Borders, Cell, Row, Table},
 };
 
-use crate::fetch::{Query, Question};
+use crate::fetch::fetch_query_log::{Query, Question};
 
 pub fn make_query_table<'a>(data: &'a [Query]) -> Table<'a> {
     let rows = data

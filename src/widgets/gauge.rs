@@ -1,4 +1,4 @@
-use crate::fetch_stats::StatsResponse;
+use crate::fetch::fetch_stats::StatsResponse;
 use tui::{
     style::{Color, Style},
     widgets::{Block, Borders, Gauge},
