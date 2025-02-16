@@ -1,13 +1,14 @@
 mod fetch;
 mod fetch_stats;
 mod ui;
+mod widgets;
 
 use fetch::fetch_adguard_data;
 use fetch_stats::fetch_adguard_stats;
-use reqwest::Client;
-use std::{sync::Arc, time::Duration};
-use tokio::time::interval;
 use ui::draw_ui;
+use std::{sync::Arc, time::Duration};
+use reqwest::Client;
+use tokio::time::interval;
 
 async fn run() -> Result<(), anyhow::Error> {
     let shutdown = Arc::new(tokio::sync::Notify::new());
