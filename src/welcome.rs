@@ -1,27 +1,14 @@
-use std::io::{self, Write};
-// use std::io::{Error, ErrorKind};
 use colored::*;
 use reqwest::{Client, Error};
 use std::env;
+use std::io::{self, Write};
 
-fn print_error(address: String, error: Option<Error>) {
-    println!(
-        "{}",
-        format!("Failed to connect to AdGuard at {}", address).red()
-    );
-    match error {
-        Some(err) => {
-            println!("{}", format!("{}", err).red().dimmed());
-        }
-        None => {
-            println!("Didn't get anything");
-        }
-    }
-    println!(
-        "{}",
-        "\nPlease check your environmental variables and try again.".yellow()
-    );
-    println!("{}", "Exiting...".blue());
+fn print_info(text: &str, is_secondary: bool) {
+    let text = if is_secondary {
+        println!("{}", text.green().italic().dimmed());
+    } else {
+        println!("{}", text.green());
+    };
 }
 
 fn print_ascii_art() {
@@ -33,22 +20,83 @@ fn print_ascii_art() {
 ██║  ██║██████╔╝╚██████╔╝╚██████╔╝██║  ██║██║  ██║██████╔╝██║██║  ██║██║ ╚████║
 ╚═╝  ╚═╝╚═════╝  ╚═════╝  ╚═════╝ ╚═╝  ╚═╝╚═╝  ╚═╝╚═════╝ ╚═╝╚═╝  ╚═╝╚═╝  ╚═══╝
 ";
-    println!("{}", art.green());
+    print_info(art, false);
+    print_info("\nWelcome to AdGuardian Terminal Edition!", false);
+    print_info("Terminal-based, real-time traffic monitoring and statistics for your AdGuard Home instance", true);
+    print_info(
+        "For documentation and support, please visit: https://github.com/obaraelijah/adguard-tui\n",
+        true,
+    );
+}
 
-    println!("{}", "\nWelcome to AdGuardian Terminal Edition!".green());
-    println!("{}", "Terminal-based, real-time traffic monitoring and statistics for your AdGuard Home instance".green().italic().dimmed());
+fn print_error(address: &str, error: Option<&Error>) {
+    eprintln!(
+        "{}{}",
+        format!("Failed to connect to AdGuard at {}", address).red(),
+        match error {
+            Some(err) => format!("\n{}", err).red().dimmed(),
+            None => ColoredString::from("".red().dimmed()),
+        },
+    );
+    eprintln!(
+        "{}\n{}",
+        "\nPlease check your environmental variables and try again.".yellow(),
+        "Exiting...".blue()
+    );
+}
+
+fn get_env(key: &str) -> Result<String, env::VarError> {
+    env::var(key).map(|v| {
+        println!(
+            "{}",
+            format!(
+                "{} is set to {}",
+                key.bold(),
+                if key.contains("PASSWORD") {
+                    "******"
+                } else {
+                    &v
+                }
+            )
+            .green()
+        );
+        v
+    })
+}
+
+async fn verify_connection(
+    client: &Client,
+    ip: String,
+    port: String,
+    username: String,
+    password: String,
+) -> Result<(), Box<dyn std::error::Error>> {
     println!(
         "{}",
-        "For documentation and support, please visit: https://github.com/obaraelijah/adguard-tui\n"
-            .green()
-            .italic()
-            .dimmed()
+        "\nVerifying connection to your AdGuard instance...".blue()
     );
+
+    let auth_string = format!("{}:{}", username, password);
+    let auth_header_value = format!("Basic {}", base64::encode(&auth_string));
+    let mut headers = reqwest::header::HeaderMap::new();
+    headers.insert("Authorization", auth_header_value.parse()?);
+
+    let url = format!("http://{}:{}/control/status", ip, port);
+
+    match client.get(&url).headers(headers).send().await {
+        Ok(res) if res.status().is_success() => {
+            println!("{}", "AdGuard connection successful!\n".green());
+            Ok(())
+        }
+        Ok(_) | Err(_) => {
+            print_error(&format!("{}:{}", ip, port), None);
+            std::process::exit(1);
+        }
+    }
 }
 
 pub async fn welcome() -> Result<(), Box<dyn std::error::Error>> {
     print_ascii_art();
-
     println!("{}", "Starting initialization checks...".blue());
 
     let client = Client::new();
@@ -72,48 +120,12 @@ pub async fn welcome() -> Result<(), Box<dyn std::error::Error>> {
             io::stdin().read_line(&mut value)?;
             env::set_var(key, value.trim());
         }
-
-        if key.contains("PASSWORD") {
-            println!("{}", format!("{} is set to ******", key.bold()).green());
-        } else {
-            println!(
-                "{}",
-                format!("{} is set to {}", key.bold(), env::var(key).unwrap()).green()
-            );
-        }
     }
 
-    let ip = env::var("ADGUARD_IP").unwrap();
-    let port = env::var("ADGUARD_PORT").unwrap();
-    let username = env::var("ADGUARD_USERNAME").unwrap();
-    let password = env::var("ADGUARD_PASSWORD").unwrap();
+    let ip = get_env("ADGUARD_IP")?;
+    let port = get_env("ADGUARD_PORT")?;
+    let username = get_env("ADGUARD_USERNAME")?;
+    let password = get_env("ADGUARD_PASSWORD")?;
 
-    println!(
-        "{}",
-        "\nVerifying connection to your AdGuard instance...".blue()
-    );
-
-    let auth_string = format!("{}:{}", username, password);
-    let auth_header_value = format!("Basic {}", base64::encode(&auth_string));
-    let mut headers = reqwest::header::HeaderMap::new();
-    headers.insert("Authorization", auth_header_value.parse()?);
-
-    let url = format!("http://{}:{}/control/status", ip, port);
-
-    let res = match client.get(&url).headers(headers).send().await {
-        Ok(response) => response,
-        Err(e) => {
-            print_error(format!("{}:{}", ip, port), Some(e));
-            std::process::exit(1);
-        }
-    };
-
-    if res.status().is_success() {
-        println!("{}", "AdGuard connection successful!\n".green());
-    } else {
-        print_error(format!("{}:{}", ip, port), None);
-        std::process::exit(1);
-    }
-
-    Ok(())
+    verify_connection(&client, ip, port, username, password).await
 }
