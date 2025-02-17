@@ -1,20 +1,23 @@
 mod fetch;
 mod ui;
-mod welcome;
 mod widgets;
+mod welcome;
 
-use reqwest::Client;
 use std::{env, sync::Arc, time::Duration};
+use reqwest::Client;
 use tokio::time::interval;
 
 use ui::draw_ui;
 
 use fetch::{
-    fetch_filters::fetch_adguard_filter_list, fetch_query_log::fetch_adguard_query_log,
-    fetch_stats::fetch_adguard_stats, fetch_status::fetch_adguard_status,
+    fetch_query_log::fetch_adguard_query_log, 
+    fetch_stats::fetch_adguard_stats, 
+    fetch_status::fetch_adguard_status,
+    fetch_filters::fetch_adguard_filter_list
 };
 
 async fn run() -> anyhow::Result<()> {
+
     // Create a reqwest client
     let client = Client::new();
 
@@ -37,20 +40,15 @@ async fn run() -> anyhow::Result<()> {
     let shutdown = Arc::new(tokio::sync::Notify::new());
 
     // Spawn the UI task, pass data and update channels
-    let draw_ui_task = tokio::spawn(draw_ui(
-        queries_rx,
-        stats_rx,
-        status_rx,
-        filters,
-        Arc::clone(&shutdown),
-    ));
+    let draw_ui_task = tokio::spawn(
+        draw_ui(queries_rx, stats_rx, status_rx, filters, Arc::clone(&shutdown))
+    );
 
     // Get update interval (in seconds)
     let interval_secs: u64 = env::var("ADGUARD_UPDATE_INTERVAL")
-        .unwrap_or_else(|_| "2".into())
-        .parse()?;
+        .unwrap_or_else(|_| "2".into()).parse()?;
     let mut interval = interval(Duration::from_secs(interval_secs));
-
+    
     // Open loop for fetching data at the specified interval
     loop {
         tokio::select! {
@@ -59,7 +57,7 @@ async fn run() -> anyhow::Result<()> {
                 if queries_tx.send(queries.data).await.is_err() {
                     return Err(anyhow::anyhow!("Failed to send query data"));
                 }
-
+                
                 let stats = fetch_adguard_stats(&client, &hostname, &username, &password).await?;
                 if stats_tx.send(stats).await.is_err() {
                     return Err(anyhow::anyhow!("Failed to send stats data"));
@@ -84,26 +82,14 @@ async fn run() -> anyhow::Result<()> {
 fn main() {
     let rt = tokio::runtime::Runtime::new().unwrap();
     rt.block_on(async {
-        welcome::welcome()
-            .await
-            .or_else(|e| {
-                eprintln!("Failed to initialize: {}", e);
-                Err(std::io::Error::new(
-                    std::io::ErrorKind::Other,
-                    "Failed to initialize",
-                ))
-            })
-            .unwrap();
+        welcome::welcome().await.or_else(|e| {
+            eprintln!("Failed to initialize: {}", e);
+            Err(std::io::Error::new(std::io::ErrorKind::Other, "Failed to initialize"))
+        }).unwrap();
 
-        run()
-            .await
-            .or_else(|e| {
-                eprintln!("Failed to run: {}", e);
-                Err(std::io::Error::new(
-                    std::io::ErrorKind::Other,
-                    "Failed to run",
-                ))
-            })
-            .unwrap();
+        run().await.or_else(|e| {
+            eprintln!("Failed to run: {}", e);
+            Err(std::io::Error::new(std::io::ErrorKind::Other, "Failed to run"))
+        }).unwrap();
     });
 }

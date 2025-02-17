@@ -14,7 +14,7 @@ pub struct AdGuardFilteringStatus {
 pub struct Filter {
     pub url: String,
     pub name: String,
-    pub last_updated: String,
+    pub last_updated: Option<String>,
     id: u32,
     pub rules_count: u32,
     pub enabled: bool,
