@@ -9,7 +9,6 @@ use std::{io::stdout, sync::Arc, time::Duration};
 use tui::{
     backend::CrosstermBackend,
     layout::{Constraint, Direction, Layout},
-    widgets::Block,
     Terminal,
 };
 
