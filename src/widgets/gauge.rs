@@ -1,6 +1,7 @@
 use crate::fetch::fetch_stats::StatsResponse;
 use tui::{
-    style::{Color, Style},
+    style::{Color, Modifier, Style},
+    text::Span,
     widgets::{Block, Borders, Gauge},
 };
 
@@ -11,13 +12,16 @@ pub fn make_gauge(stats: &StatsResponse) -> Gauge {
         + stats.num_replaced_safesearch;
     let percent = (total_blocked as f64 / stats.num_dns_queries as f64 * 100.0) as u16;
     let label = format!(
-        "Blocked {} out of {} requests ({}%)",
+        "Blocked {} out of {} ({}%)",
         total_blocked, stats.num_dns_queries, percent
     );
     Gauge::default()
         .block(
             Block::default()
-                .title("Block Percentage")
+                .title(Span::styled(
+                    "Block Percentage",
+                    Style::default().add_modifier(Modifier::BOLD),
+                ))
                 .borders(Borders::ALL),
         )
         .gauge_style(Style::default().fg(Color::Red).bg(Color::Green))

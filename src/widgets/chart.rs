@@ -17,7 +17,14 @@ pub fn make_history_chart<'a>(stats: &'a StatsResponse) -> Chart<'a> {
     let y_labels = generate_y_labels(y_bound as i32, 5);
     // Create chart
     let chart = Chart::new(datasets)
-        .block(Block::default().title("History").borders(Borders::ALL))
+        .block(
+            Block::default()
+                .title(Span::styled(
+                    "History",
+                    Style::default().add_modifier(Modifier::BOLD),
+                ))
+                .borders(Borders::ALL),
+        )
         .x_axis(
             Axis::default()
                 .title("Time (Days ago)")
@@ -30,7 +37,6 @@ pub fn make_history_chart<'a>(stats: &'a StatsResponse) -> Chart<'a> {
                 .labels(y_labels)
                 .bounds([0.0, y_bound]),
         );
-
     chart
 }
 
