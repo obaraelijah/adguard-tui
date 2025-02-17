@@ -1,5 +1,6 @@
 mod fetch;
 mod ui;
+mod welcome;
 mod widgets;
 
 use fetch::fetch_query_log::fetch_adguard_query_log;
@@ -10,6 +11,16 @@ use reqwest::Client;
 use std::{sync::Arc, time::Duration};
 use tokio::time::interval;
 use ui::draw_ui;
+
+fn get_update_interval() -> u64 {
+    match env::var("ADGUARDIAN_UPDATE_INTERVAL") {
+        Ok(val) => match val.parse::<u64>() {
+            Ok(val) => val,
+            Err(_) => 3,
+        },
+        Err(_) => 3,
+    }
+}
 
 async fn run() -> Result<(), anyhow::Error> {
     let shutdown = Arc::new(tokio::sync::Notify::new());
@@ -27,9 +38,13 @@ async fn run() -> Result<(), anyhow::Error> {
     ));
 
     let client = Client::new();
-    let hostname = "http://192.168.130.2:8083";
-    let username = "admin";
-    let password = "uPbxy1G8g0xO83nw";
+
+    let ip = env::var("ADGUARD_IP").unwrap();
+    let port = env::var("ADGUARD_PORT").unwrap();
+    let username = env::var("ADGUARD_USERNAME").unwrap();
+    let password = env::var("ADGUARD_PASSWORD").unwrap();
+    let hostname = format!("http://{}:{}", ip, port);
+
     let mut interval = interval(Duration::from_secs(3));
 
     loop {
@@ -60,10 +75,25 @@ async fn run() -> Result<(), anyhow::Error> {
     Ok(())
 }
 
-fn main() -> Result<(), anyhow::Error> {
-    let rt = tokio::runtime::Builder::new_current_thread()
-        .enable_all()
-        .build()?;
+fn main() {
+    let rt = tokio::runtime::Runtime::new().unwrap();
+    rt.block_on(async {
+        if let Err(e) = welcome::welcome().await {
+            eprintln!("Failed to initialize: {}", e);
+            std::process::exit(1);
+        }
 
-    rt.block_on(run())
+        if let Err(e) = run().await {
+            eprintln!("Failed to run: {}", e);
+            std::process::exit(1);
+        }
+    });
 }
+
+// fn main() -> Result<(), anyhow::Error> {
+//     let rt = tokio::runtime::Builder::new_current_thread()
+//         .enable_all()
+//         .build()?;
+
+//     rt.block_on(run())
+// }
