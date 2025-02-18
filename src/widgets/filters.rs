@@ -34,7 +34,7 @@ pub fn make_filters_list(filters: &[Filter], width: u16) -> List {
             );
             let name = Span::raw(format!(
                 " {}",
-                truncate(&filter.name, width as usize / 4 - 14)
+                truncate(&filter.name, width as usize / 4 - 12)
             ));
             let content = Line::from(vec![status, name, rule_count]);
             ListItem::new(content)

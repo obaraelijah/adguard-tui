@@ -2,7 +2,7 @@ use crate::fetch::fetch_stats::DomainData;
 
 use tui::{
     style::{Color, Modifier, Style},
-    text::{Span, Spans},
+    text::{Span, Line},
     widgets::{Block, Borders, List, ListItem},
 };
 
@@ -26,7 +26,7 @@ pub fn make_list<'a>(title: &'a str, data: &[DomainData], color: Color, width: u
                 format!(" ({})", data.count),
                 Style::default().fg(color).add_modifier(Modifier::BOLD),
             );
-            ListItem::new(Spans::from(vec![name, count]))
+            ListItem::new(Line::from(vec![name, count]))
         })
         .collect();
 
