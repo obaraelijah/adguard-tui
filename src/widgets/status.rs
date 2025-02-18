@@ -29,7 +29,7 @@ pub fn render_status_paragraph(status: &StatusResponse) -> Paragraph {
     let text = vec![
         Line::from(vec![
             Span::styled("Version: ", Style::default()),
-            Span::styled(format!("{}", status.version), value_style),
+            Span::styled(status.version.to_string(), value_style),
         ]),
         Line::from(vec![
             Span::styled("Ports: ", Style::default()),

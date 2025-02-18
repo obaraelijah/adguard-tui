@@ -21,9 +21,9 @@ use crate::fetch::fetch_status::StatusResponse;
 use crate::widgets::chart::{make_history_chart, prepare_chart_data};
 use crate::widgets::filters::make_filters_list;
 use crate::widgets::gauge::make_gauge;
+use crate::widgets::list::make_list;
 use crate::widgets::status::render_status_paragraph;
 use crate::widgets::table::make_query_table;
-use crate::widgets::list::make_list;
 
 pub async fn draw_ui(
     mut data_rx: tokio::sync::mpsc::Receiver<Vec<Query>>,
@@ -66,8 +66,18 @@ pub async fn draw_ui(
             let graph = make_history_chart(&stats);
             let paragraph = render_status_paragraph(&status);
             let filters = make_filters_list(filters.filters.as_slice(), size.width);
-            let top_queried_domains = make_list("Top Queried Domains", &stats.top_queried_domains, Color::Green, size.width);
-            let top_blocked_domains = make_list("Top Blocked Domains", &stats.top_blocked_domains, Color::Red, size.width);
+            let top_queried_domains = make_list(
+                "Top Queried Domains",
+                &stats.top_queried_domains,
+                Color::Green,
+                size.width,
+            );
+            let top_blocked_domains = make_list(
+                "Top Blocked Domains",
+                &stats.top_blocked_domains,
+                Color::Red,
+                size.width,
+            );
             let top_clients = make_list("Top Clients", &stats.top_clients, Color::Cyan, size.width);
 
             let constraints = if size.height > 42 {

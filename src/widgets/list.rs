@@ -2,7 +2,7 @@ use crate::fetch::fetch_stats::DomainData;
 
 use tui::{
     style::{Color, Modifier, Style},
-    text::{Span, Line},
+    text::{Line, Span},
     widgets::{Block, Borders, List, ListItem},
 };
 

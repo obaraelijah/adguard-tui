@@ -7,11 +7,11 @@ use tui::{
 
 use crate::fetch::fetch_stats::StatsResponse;
 
-pub fn make_history_chart<'a>(stats: &'a StatsResponse) -> Chart<'a> {
+pub fn make_history_chart(stats: &StatsResponse) -> Chart<'_> {
     // Convert datasets into vector that can be consumed by chart
-    let datasets = make_history_datasets(&stats);
+    let datasets = make_history_datasets(stats);
     // Find uppermost x and y-axis bounds for chart
-    let (x_bound, y_bound) = find_bounds(&stats);
+    let (x_bound, y_bound) = find_bounds(stats);
     // Generate incremental labels from data's values, to render on axis
     let x_labels = generate_x_labels(stats.dns_queries.len() as i32, 5);
     let y_labels = generate_y_labels(y_bound as i32, 5);
@@ -41,7 +41,7 @@ pub fn make_history_chart<'a>(stats: &'a StatsResponse) -> Chart<'a> {
 }
 
 // Returns a dataset that's consumable by the chart widget
-fn make_history_datasets<'a>(stats: &'a StatsResponse) -> Vec<Dataset<'a>> {
+fn make_history_datasets(stats: &StatsResponse) -> Vec<Dataset<'_>> {
     let dns_queries_dataset = Dataset::default()
         .name("DNS Queries")
         .marker(symbols::Marker::Braille)
@@ -89,7 +89,7 @@ fn generate_y_labels(max: i32, count: usize) -> Vec<Span<'static>> {
 
 // Generate periodic labels to render on the x-axis (days ago)
 fn generate_x_labels(max_days: i32, num_labels: i32) -> Vec<Span<'static>> {
-    let step = (max_days / (num_labels - 1)) as i32;
+    let step = max_days / (num_labels - 1);
     (0..num_labels)
         .map(|i| {
             let day = (max_days - i * step).to_string();

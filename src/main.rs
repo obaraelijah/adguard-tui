@@ -86,23 +86,17 @@ fn main() {
     rt.block_on(async {
         welcome::welcome()
             .await
-            .or_else(|e| {
+            .map_err(|e| {
                 eprintln!("Failed to initialize: {}", e);
-                Err(std::io::Error::new(
-                    std::io::ErrorKind::Other,
-                    "Failed to initialize",
-                ))
+                std::io::Error::new(std::io::ErrorKind::Other, "Failed to initialize")
             })
             .unwrap();
 
         run()
             .await
-            .or_else(|e| {
+            .map_err(|e| {
                 eprintln!("Failed to run: {}", e);
-                Err(std::io::Error::new(
-                    std::io::ErrorKind::Other,
-                    "Failed to run",
-                ))
+                std::io::Error::new(std::io::ErrorKind::Other, "Failed to run")
             })
             .unwrap();
     });

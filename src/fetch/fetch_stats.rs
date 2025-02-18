@@ -26,9 +26,15 @@ pub struct StatsResponse {
     #[serde(default, skip_deserializing)]
     pub blocked_filtering_chart: Vec<(f64, f64)>,
 
-    #[serde(rename = "top_queried_domains", deserialize_with = "deserialize_domains")]
+    #[serde(
+        rename = "top_queried_domains",
+        deserialize_with = "deserialize_domains"
+    )]
     pub top_queried_domains: Vec<DomainData>,
-    #[serde(rename = "top_blocked_domains", deserialize_with = "deserialize_domains")]
+    #[serde(
+        rename = "top_blocked_domains",
+        deserialize_with = "deserialize_domains"
+    )]
     pub top_blocked_domains: Vec<DomainData>,
     #[serde(rename = "top_clients", deserialize_with = "deserialize_domains")]
     pub top_clients: Vec<DomainData>,
@@ -67,7 +73,9 @@ where
     Ok(raw_vec
         .into_iter()
         .flat_map(|mut map| {
-            map.drain().map(|(name, count)| DomainData { name, count }).collect::<Vec<_>>()
+            map.drain()
+                .map(|(name, count)| DomainData { name, count })
+                .collect::<Vec<_>>()
         })
         .collect())
 }

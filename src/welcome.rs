@@ -4,7 +4,7 @@ use std::env;
 use std::io::{self, Write};
 
 fn print_info(text: &str, is_secondary: bool) {
-    let _ = if is_secondary {
+    if is_secondary {
         println!("{}", text.green().italic().dimmed());
     } else {
         println!("{}", text.green());
@@ -35,7 +35,7 @@ fn print_error(address: &str, error: Option<&Error>) {
         format!("Failed to connect to AdGuard at {}", address).red(),
         match error {
             Some(err) => format!("\n{}", err).red().dimmed(),
-            None => ColoredString::from("".red().dimmed()),
+            None => "".red().dimmed(),
         },
     );
     eprintln!(
@@ -46,7 +46,7 @@ fn print_error(address: &str, error: Option<&Error>) {
 }
 
 fn get_env(key: &str) -> Result<String, env::VarError> {
-    env::var(key).map(|v| {
+    env::var(key).inspect(|v| {
         println!(
             "{}",
             format!(
@@ -55,12 +55,11 @@ fn get_env(key: &str) -> Result<String, env::VarError> {
                 if key.contains("PASSWORD") {
                     "******"
                 } else {
-                    &v
+                    v
                 }
             )
             .green()
         );
-        v
     })
 }
 

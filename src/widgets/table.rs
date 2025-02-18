@@ -8,7 +8,7 @@ use tui::{
 
 use crate::fetch::fetch_query_log::{Query, Question};
 
-pub fn make_query_table<'a>(data: &'a [Query]) -> Table<'a> {
+pub fn make_query_table(data: &[Query]) -> Table<'_> {
     let rows = data
         .iter()
         .map(|query| {
@@ -86,7 +86,7 @@ fn make_time_taken_and_color(elapsed: &str) -> Result<(String, Color), anyhow::E
     let time_taken = format!("{:.2} ms", rounded_elapsed);
     let color = if elapsed_f64 < 1.0 {
         Color::Green
-    } else if elapsed_f64 >= 1.0 && elapsed_f64 <= 20.0 {
+    } else if (1.0..=20.0).contains(&elapsed_f64) {
         Color::Yellow
     } else {
         Color::Red
@@ -96,20 +96,20 @@ fn make_time_taken_and_color(elapsed: &str) -> Result<(String, Color), anyhow::E
 
 // Return color for a row, based on the allow/block reason
 fn make_row_color(reason: &str) -> Color {
-    return if reason == "NotFilteredNotFound" {
+    if reason == "NotFilteredNotFound" {
         Color::Green
     } else if reason == "FilteredBlackList" {
         Color::Red
     } else {
         Color::Yellow
-    };
+    }
 }
 
 // Return text and color for the status cell based on allow/ block reason
 fn block_status_text(reason: &str, cached: bool) -> (String, Color) {
     let (text, color) = if reason == "FilteredBlackList" {
         ("Blacklisted".to_string(), Color::Red)
-    } else if cached == true {
+    } else if cached {
         ("Cached".to_string(), Color::Cyan)
     } else if reason == "NotFilteredNotFound" {
         ("Allowed".to_string(), Color::Green)
