@@ -15,25 +15,18 @@ env:
   DOCKERHUB_REGISTRY: docker.io
 
 jobs:
-  docker:
+  build:
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        target: 
+          - x86_64-unknown-linux-musl
+          - aarch64-unknown-linux-musl
+          - armv7-unknown-linux-musleabihf
 
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-
-      - name: Install latest rust toolchain
-        uses: actions-rs/toolchain@v1
-        with:
-          toolchain: stable
-          default: true
-          override: true
-
-      - name: Add cross-compilation targets
-        run: |
-          rustup target add aarch64-unknown-linux-musl
-          rustup target add armv7-unknown-linux-musleabihf
-          rustup target add x86_64-unknown-linux-musl
 
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
@@ -48,16 +41,21 @@ jobs:
             echo "GIT_TAG=latest" >> $GITHUB_ENV
           fi
 
-      - name: Compute tags
-        id: compute_tags
-        run: |
-          echo "GHCR_TAG=${GHCR_REGISTRY}/${DOCKER_USER}/${IMAGE_NAME}:${GIT_TAG}" >> $GITHUB_ENV
-          echo "DOCKERHUB_TAG=${DOCKERHUB_REGISTRY}/${DOCKER_USER}/${IMAGE_NAME}:${GIT_TAG}" >> $GITHUB_ENV
+      - name: Install Rust toolchain
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          target: ${{ matrix.target }}
+          override: true
+
+      - name: Build
+        uses: actions-rs/cargo@v1
+        with:
+          command: build
+          args: --release --target ${{ matrix.target }}
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
-        with:
-          platforms: linux/amd64,linux/arm64,linux/arm/v7
 
       - name: Login to GitHub Container Registry
         uses: docker/login-action@v3
@@ -66,11 +64,6 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Debug DockerHub credentials
-        run: |
-          echo "Username: ${{ env.DOCKER_USER }}"
-          echo "Password set: ${{ secrets.DOCKERHUB_PASSWORD != '' && 'yes' || 'no' }}"
-
       - name: Login to DockerHub
         uses: docker/login-action@v3
         with:
@@ -78,15 +71,32 @@ jobs:
           username: ${{ env.DOCKER_USER }}
           password: ${{ secrets.DOCKERHUB_PASSWORD }}
 
-      - name: Build and push Docker images
+      - name: Build and push Docker image
         uses: docker/build-push-action@v5
         with:
           context: .
           file: ./Dockerfile
           push: true
-          platforms: linux/amd64,linux/arm64,linux/arm/v7
+          platforms: linux/amd64
           tags: |
-            ${{ env.GHCR_TAG }}
-            ${{ env.DOCKERHUB_TAG }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
+            ${{ env.GHCR_REGISTRY }}/${{ env.DOCKER_USER }}/${{ env.IMAGE_NAME }}:${{ env.GIT_TAG }}-${{ matrix.target }}
+            ${{ env.DOCKERHUB_REGISTRY }}/${{ env.DOCKER_USER }}/${{ env.IMAGE_NAME }}:${{ env.GIT_TAG }}-${{ matrix.target }}
+
+  merge-tags:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Create and push manifest lists
+        run: |
+          docker manifest create ${{ env.GHCR_REGISTRY }}/${{ env.DOCKER_USER }}/${{ env.IMAGE_NAME }}:${{ env.GIT_TAG }} \
+            ${{ env.GHCR_REGISTRY }}/${{ env.DOCKER_USER }}/${{ env.IMAGE_NAME }}:${{ env.GIT_TAG }}-x86_64-unknown-linux-musl \
+            ${{ env.GHCR_REGISTRY }}/${{ env.DOCKER_USER }}/${{ env.IMAGE_NAME }}:${{ env.GIT_TAG }}-aarch64-unknown-linux-musl \
+            ${{ env.GHCR_REGISTRY }}/${{ env.DOCKER_USER }}/${{ env.IMAGE_NAME }}:${{ env.GIT_TAG }}-armv7-unknown-linux-musleabihf
+          
+          docker manifest create ${{ env.DOCKERHUB_REGISTRY }}/${{ env.DOCKER_USER }}/${{ env.IMAGE_NAME }}:${{ env.GIT_TAG }} \
+            ${{ env.DOCKERHUB_REGISTRY }}/${{ env.DOCKER_USER }}/${{ env.IMAGE_NAME }}:${{ env.GIT_TAG }}-x86_64-unknown-linux-musl \
+            ${{ env.DOCKERHUB_REGISTRY }}/${{ env.DOCKER_USER }}/${{ env.IMAGE_NAME }}:${{ env.GIT_TAG }}-aarch64-unknown-linux-musl \
+            ${{ env.DOCKERHUB_REGISTRY }}/${{ env.DOCKER_USER }}/${{ env.IMAGE_NAME }}:${{ env.GIT_TAG }}-armv7-unknown-linux-musleabihf
+          
+          docker manifest push ${{ env.GHCR_REGISTRY }}/${{ env.DOCKER_USER }}/${{ env.IMAGE_NAME }}:${{ env.GIT_TAG }}
+          docker manifest push ${{ env.DOCKERHUB_REGISTRY }}/${{ env.DOCKER_USER }}/${{ env.IMAGE_NAME }}:${{ env.GIT_TAG }}
