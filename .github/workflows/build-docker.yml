@@ -7,7 +7,7 @@ on:
       - main
 
 env:
-  IMAGE_NAME: adguard
+  IMAGE_NAME: adguard-tui
   DOCKER_USER: obaraelijah
   GHCR_REGISTRY: ghcr.io
   DOCKERHUB_REGISTRY: docker.io
