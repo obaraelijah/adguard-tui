@@ -8,7 +8,7 @@ on:
 
 env:
   IMAGE_NAME: adguard-tui
-  DOCKER_USER: ${{ github.repository_owner }}
+  DOCKER_USER: obaraelijah
   REGISTRY: ghcr.io
 
 jobs:
