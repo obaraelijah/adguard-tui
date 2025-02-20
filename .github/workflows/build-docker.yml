@@ -5,13 +5,14 @@ on:
   push:
     branches:
       - main
+    tags:
+      - 'v*.*.*'  
 
 env:
   IMAGE_NAME: adguard-tui
   DOCKER_USER: obaraelijah
   GHCR_REGISTRY: ghcr.io
   DOCKERHUB_REGISTRY: docker.io
-  GIT_TAG: ${{ github.ref == 'refs/tags/*' && github.ref || 'latest' }}
 
 jobs:
   docker:
@@ -20,17 +21,22 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v2
-      
-      - name: Compute tags
-        id: compute-tags
+
+      - name: Extract tag name
+        id: extract_tag
+        shell: bash
         run: |
-          if [ "${{ github.ref }}" == "refs/heads/main" ]; then
-            echo "GHCR_TAG=${GHCR_REGISTRY}/${DOCKER_USER}/${IMAGE_NAME}:latest" >> $GITHUB_ENV
-            echo "DOCKERHUB_TAG=${DOCKERHUB_REGISTRY}/${DOCKER_USER}/${IMAGE_NAME}:latest" >> $GITHUB_ENV
+          if [[ ${{ github.ref }} =~ ^refs/tags/v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "GIT_TAG=${GITHUB_REF#refs/tags/}" >> $GITHUB_ENV
           else
-            echo "GHCR_TAG=${GHCR_REGISTRY}/${DOCKER_USER}/${IMAGE_NAME}:${GIT_TAG}" >> $GITHUB_ENV
-            echo "DOCKERHUB_TAG=${DOCKERHUB_REGISTRY}/${DOCKER_USER}/${IMAGE_NAME}:${GIT_TAG}" >> $GITHUB_ENV
+            echo "GIT_TAG=latest" >> $GITHUB_ENV
           fi
+
+      - name: Compute tags
+        id: compute_tags
+        run: |
+          echo "GHCR_TAG=${GHCR_REGISTRY}/${DOCKER_USER}/${IMAGE_NAME}:${GIT_TAG}" >> $GITHUB_ENV
+          echo "DOCKERHUB_TAG=${DOCKERHUB_REGISTRY}/${DOCKER_USER}/${IMAGE_NAME}:${GIT_TAG}" >> $GITHUB_ENV
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v1
@@ -48,10 +54,6 @@ jobs:
           registry: ${{ env.DOCKERHUB_REGISTRY }}
           username: ${{ env.DOCKER_USER }}
           password: ${{ secrets.DOCKERHUB_PASSWORD }}
-
-      - name: Extract tag name
-        shell: bash
-        run: echo "GIT_TAG=${GITHUB_REF#refs/tags/}" >> $GITHUB_ENV
 
       - name: Build and push Docker images
         uses: docker/build-push-action@v2
