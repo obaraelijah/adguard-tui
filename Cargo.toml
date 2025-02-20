@@ -6,7 +6,7 @@ authors = ["Elijah Samson"]
 description = "Terminal-based, real-time traffic monitoring and statistics for your AdGuard Home instance "
 repository = "https://github.com/obaraelijah/adguard-tui"
 license = "MIT"
-readme = "README.md"
+readme = ".github/README.md"
 keywords = ["adguard", "monitoring", "statistics"]
 categories = ["command-line-utilities"]
 

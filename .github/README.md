@@ -3,7 +3,7 @@
 	<i>Terminal-based, real-time traffic monitoring and statistics for your AdGuard Home instance</i>
 </p>
 <p align="center">
-  <img width="200" src="https://i.ibb.co/25GNT0n/adguardian-banner-4.png" />
+  <img width="200" src="https://i.ibb.co/25GNT0n/adguard-tui-banner-4.png" />
 </p>
 
 ## About
@@ -20,9 +20,8 @@ There are several options for running...
 docker run -it obaraelijah/adguard-tui
 ```
 
-You may also pass in your AdGuard info with env vars (using `-e`), see the [Configuring](#configuring) section for an example, and list of availible config params.
-
-If you experience issues with DockerHub, or would rather use a different registry, the image is also available via GHCR - just replace the image name with: `ghcr.io/obaraelijah/adguard-tui`. Alternatively, if you'd like to build it yourself from source, you can do so with `docker buildx build -t  adguard-tui .` then run it with `docker run -it adguard-tui`.
+> You may also pass in your AdGuard info with env vars (using `-e`), see the [Configuring](#configuring) section for an example, and list of availible config params.<br>
+> If you experience issues with DockerHub, or would rather use a different registry, the image is also available via GHCR - just replace the image name with: `ghcr.io/lissy93/adguard-tui`. Alternatively, if you'd like to build it yourself from source, you can do so with `docker buildx build -t  adguard-tui .` then run it with `docker run -it adguard-tui`.
 
 ### Executable
 
@@ -31,6 +30,13 @@ Then, just run it by either double-clicking on it, or for Linux/Mac users, by ru
 
 ### Install from Crates.io
 
+```
+cargo install adguard-tui
+adguard-tui
+```
+
+> adguard-tui is published as a crate to [crates.io/crates/adguard-tui](https://crates.io/crates/adguard-tui). So providing you've got Cargo installed, you can pull the binary directly, and then execute it as above. Again, see the [Configuring](#configuring) section below for how to pass in your AdGuard info.
+> 
 ### Build from Source
 
 ```bash
@@ -39,7 +45,7 @@ cd adguard-tui && \
 make
 ```
 
-You'll need `git`, `cargo` and `make` (see [here](#development) for installation notes). You can also run the cargo commands defined in the Makefile directly, e.g. `cargo run`
+> You'll need `git`, `cargo` and `make` (see [here](#development) for installation notes). You can also run the cargo commands defined in the Makefile directly, e.g. `cargo run`
 
 ### One-Liner
 
@@ -76,7 +82,7 @@ The following params are accepted:
 #### With Flags
 	
 ```bash
-./adguard-tui -- \
+adguard-tui -- \
 	--adguard-ip "192.168.180.1" \
 	--adguard-port "3000" \
 	--adguard-username "admin" \
@@ -86,7 +92,7 @@ The following params are accepted:
 #### With Env Vars
 	
 ```bash
-ADGUARD_IP="192.168.180.1" ADGUARD_PORT="3000" ADGUARD_USERNAME="admin" ADGUARD_PASSWORD="bobs-your-uncle" ./adguard-tui
+ADGUARD_IP="192.168.180.1" ADGUARD_PORT="3000" ADGUARD_USERNAME="admin" ADGUARD_PASSWORD="bobs-your-uncle" adguard-tui
 ```
 	
 #### In Docker
