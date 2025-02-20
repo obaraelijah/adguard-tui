@@ -1,6 +1,6 @@
 # syntax=docker/dockerfile:1.2
-FROM --platform=$BUILDPLATFORM rust:alpine AS builder
-RUN apk add --no-cache pkgconfig openssl openssl-dev musl-dev
+FROM --platform=$BUILDPLATFORM rust:1.75 AS builder
+RUN rustup update stable
 WORKDIR /usr/src/adguard-tui
 COPY . .
 RUN cargo build --release
