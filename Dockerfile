@@ -1,5 +1,5 @@
 # syntax=docker/dockerfile:1.2
-FROM --platform=$BUILDPLATFORM rust:latest AS builder
+FROM --platform=$BUILDPLATFORM rustlang/rust:nightly AS builder
 
 # Install build dependencies
 RUN apt-get update && apt-get install -y \
@@ -7,10 +7,8 @@ RUN apt-get update && apt-get install -y \
     libssl-dev \
     musl-tools
 
-# Update rust and add targets
-RUN rustup update && \
-    rustup default nightly && \
-    rustup target add x86_64-unknown-linux-musl
+# Add musl target
+RUN rustup target add x86_64-unknown-linux-musl
 
 # Set working directory
 WORKDIR /usr/src/adguard-tui
@@ -18,9 +16,11 @@ WORKDIR /usr/src/adguard-tui
 # Copy source code
 COPY . .
 
-# Delete the existing Cargo.lock and generate a new one
+# Force Cargo to use the latest format
 RUN rm -f Cargo.lock && \
+    CARGO_REGISTRIES_CRATES_IO_PROTOCOL=sparse \
     cargo update && \
+    CARGO_REGISTRIES_CRATES_IO_PROTOCOL=sparse \
     cargo build --release --target x86_64-unknown-linux-musl
 
 # Final stage
