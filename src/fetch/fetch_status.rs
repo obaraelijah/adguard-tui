@@ -3,7 +3,7 @@ use serde::Deserialize;
 
 /// Represents the status response from the AdGuard Home API.
 ///
-/// This struct is used to deserialize the JSON response from the 
+/// This struct is used to deserialize the JSON response from the
 /// `/control/status` endpoint.
 ///
 /// # Example
@@ -45,7 +45,7 @@ pub struct StatusResponse {
 
 /// Fetches the current status from the AdGuard Home instance.
 ///
-/// This function sends a GET request to the `/control/status` endpoint of the 
+/// This function sends a GET request to the `/control/status` endpoint of the
 /// AdGuard Home API, then deserializes the JSON response into a `StatusResponse`.
 ///
 /// # Arguments

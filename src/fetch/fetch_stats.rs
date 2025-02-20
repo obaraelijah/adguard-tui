@@ -1,7 +1,6 @@
 /// This module fetches data from AdGuard's stats API
 /// This includes total number of blocked / allowed queries in each category,
 /// and 30-day query count history
-
 use reqwest::header::{HeaderValue, AUTHORIZATION, CONTENT_LENGTH};
 use serde::Deserialize;
 use std::collections::HashMap;

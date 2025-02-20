@@ -64,7 +64,7 @@ pub async fn draw_ui(
             let gauge = make_gauge(&stats);
             let table = make_query_table(&data);
             let graph = make_history_chart(&stats);
-            let paragraph = render_status_paragraph(&status);
+            let paragraph = render_status_paragraph(&status, &stats);
             let filters = make_filters_list(filters.filters.as_slice(), size.width);
             let top_queried_domains = make_list(
                 "Top Queried Domains",
