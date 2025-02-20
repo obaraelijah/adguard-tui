@@ -1,5 +1,4 @@
 # syntax=docker/dockerfile:1.2
-
 FROM --platform=$BUILDPLATFORM rust:alpine AS builder
 RUN apk add --no-cache pkgconfig openssl openssl-dev musl-dev
 WORKDIR /usr/src/adguard-tui
