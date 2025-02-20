@@ -16,11 +16,30 @@ There are several options for running...
 
 ### Docker
 
+```bash
+docker run -it obaraelijah/adguard-tui
+```
+
+You may also pass in your AdGuard info with env vars (using `-e`), see the [Configuring](#configuring) section for an example, and list of availible config params.
+
+If you experience issues with DockerHub, or would rather use a different registry, the image is also available via GHCR - just replace the image name with: `ghcr.io/obaraelijah/adguard-tui`. Alternatively, if you'd like to build it yourself from source, you can do so with `docker buildx build -t  adguard-tui .` then run it with `docker run -it adguard-tui`.
+
 ### Executable
+
+Head to the [Releases](https://github.com/obaraelijah/adGuard-tui/releases) tab, and download the executable for your system.
+Then, just run it by either double-clicking on it, or for Linux/Mac users, by running `./adguard-tui-linux` from the command line (don't forget to make it executable first with `chmod +x adguard-tui-linux`)
 
 ### Install from Crates.io
 
 ### Build from Source
+
+```bash
+git clone git@github.com:obaraelijah/adguard-tui.git && \
+cd adguard-tui && \
+make
+```
+
+You'll need `git`, `cargo` and `make` (see [here](#development) for installation notes). You can also run the cargo commands defined in the Makefile directly, e.g. `cargo run`
 
 ### One-Liner
 
@@ -39,14 +58,49 @@ There are several options for running...
 
 ## Configuring
 
-The app requires the details of an AdGuard instance to connect to. This info can be provided either as environmental variables, or passed in as flag parameters. If any of these fields are missing or incomplete, you'll be prompted to enter a value once the app starts.
+The app requires the details of an AdGuard instance to connect to.
+This info can be provided either as environmental variables, or passed in as flag parameters.
+If any of these fields are missing or incomplete, you'll be prompted to enter a value once the app starts.
 
-The following params are required:
+The following params are accepted:
 
-- `ADGUARD_IP` - The IP address of your local AdGuard Home instance
-- `ADGUARD_PORT` - The port that AdGuard is running on
-- `ADGUARD_USERNAME` - An AdGuard Home username
-- `ADGUARD_PASSWORD` - An AdGuard Home password
+
+- `ADGUARD_IP` / `--adguard-ip` - The IP address of your local AdGuard Home instance
+- `ADGUARD_PORT` / `--adguard-port` - The port that AdGuard is running on
+- `ADGUARD_USERNAME` / `--adguard-username` - An AdGuard Home username
+- `ADGUARD_PASSWORD` / `--adguard-password` - An AdGuard Home password
+
+<details>
+<summary>Examples</summary>
+
+#### With Flags
+	
+```bash
+./adguard-tui -- \
+	--adguard-ip "192.168.180.1" \
+	--adguard-port "3000" \
+	--adguard-username "admin" \
+	--adguard-password "bobs-your-uncle"
+```
+	
+#### With Env Vars
+	
+```bash
+ADGUARD_IP="192.168.180.1" ADGUARD_PORT="3000" ADGUARD_USERNAME="admin" ADGUARD_PASSWORD="bobs-your-uncle" ./adguard-tui
+```
+	
+#### In Docker
+	
+```bash
+docker run \
+	-e "ADGUARD_IP=192.168.180.1" \
+	-e "ADGUARD_PORT=3000" \
+	-e "ADGUARD_USERNAME=admin" \
+	-e "ADGUARD_PASSWORD=bobs-your-uncle" \
+	-it obaraelijah/adguard-tui
+```
+	
+</details>
 
 ---
 
@@ -63,6 +117,8 @@ The terminal dashboard can also be viewed via a browser, thanks to [ttyd](https:
 You'll need Rust installed. Run: `curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh` - see the [installation docs](https://forge.rust-lang.org/infra/other-installation-methods.html). You'll also need [Git](https://git-scm.com/book/en/v2/Getting-Started-Installing-Git), if you don't already have it.
 
 Then clone the repo, and cd into it, with: `git clone git@github.com:obaraelijah/adguard-tui.git` && `cd adguard-tui`
+
+You can view the full list of availible project commands in the [Makefile](https://github.com/obaraelijah/adguard-tui-Term/blob/main/Makefile)
 
 ### Run
 
@@ -84,7 +140,7 @@ The documentation can be viewed at:
 
 Once your finished developing, you can build the project for production with: `cargo build --release`
 The binaries for your system will then be available in the `./target/release/` directory of the project.
-You can execute this directly, e.g. by running `./target/release/adguardian` (add .exe if on Windows)
+You can execute this directly, e.g. by running `./target/release/adguard-tui` (add .exe if on Windows)
 
 ---
 
