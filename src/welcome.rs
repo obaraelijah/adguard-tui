@@ -1,7 +1,10 @@
 use colored::*;
 use reqwest::{Client, Error};
-use std::env;
-use std::io::{self, Write};
+use std::{
+    env,
+    io::{self, Write},
+    time::Duration,
+};
 
 fn print_info(text: &str, is_secondary: bool) {
     if is_secondary {
@@ -82,7 +85,13 @@ async fn verify_connection(
 
     let url = format!("http://{}:{}/control/status", ip, port);
 
-    match client.get(&url).headers(headers).send().await {
+    match client
+        .get(&url)
+        .headers(headers)
+        .timeout(Duration::from_secs(2))
+        .send()
+        .await
+    {
         Ok(res) if res.status().is_success() => {
             println!("{}", "AdGuard connection successful!\n".green());
             Ok(())
