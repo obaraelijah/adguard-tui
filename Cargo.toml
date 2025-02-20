@@ -3,8 +3,12 @@ name = "adguard-tui"
 version = "0.9.0"
 edition = "2021"
 authors = ["Elijah Samson"]
-description = "A terminal dashboard for monitoring AdGuard Home DNS stats"
+description = "Terminal-based, real-time traffic monitoring and statistics for your AdGuard Home instance "
 repository = "https://github.com/obaraelijah/adguard-tui"
+license = "MIT"
+readme = "README.md"
+keywords = ["adguard", "monitoring", "statistics"]
+categories = ["command-line-utilities"]
 
 [dependencies]
 # Error objecr for idiomatic error handling
@@ -13,12 +17,12 @@ anyhow = "1.0"
 base64 = "0.13"
 # Date + time parsing + manipulating
 chrono = "0.4"
+# Handling of terminal colors
+colored = "2.0"
 # Term manipulation for kb + mouse events
 crossterm = { version = "0.22.0", features = ["serde"] }
 # Extension of futures for async computation
 futures = "0.3"
-# Handling of terminal colors
-colored = "2.0"
 # HTTP client
 reqwest = { version = "0.11", default-features = false, features = ["blocking", "json", "rustls-tls"] }
 # Deserilization of JSON responses
