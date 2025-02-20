@@ -21,12 +21,18 @@ docker run -it obaraelijah/adguard-tui
 ```
 
 > You may also pass in your AdGuard info with env vars (using `-e`), see the [Configuring](#configuring) section for an example, and list of availible config params.<br>
-> If you experience issues with DockerHub, or would rather use a different registry, the image is also available via GHCR - just replace the image name with: `ghcr.io/lissy93/adguard-tui`. Alternatively, if you'd like to build it yourself from source, you can do so with `docker buildx build -t  adguard-tui .` then run it with `docker run -it adguard-tui`.
+> If you experience issues with DockerHub, or would rather use a different registry, the image is also available via GHCR - just replace the image name with: `ghcr.io/obaraelijah/adguard-tui`. Alternatively, if you'd like to build it yourself from source, you can do so with `docker buildx build -t  adguard-tui .` then run it with `docker run -it adguard-tui`.
 
 ### Executable
 
-Head to the [Releases](https://github.com/obaraelijah/adGuard-tui/releases) tab, and download the executable for your system.
-Then, just run it by either double-clicking on it, or for Linux/Mac users, by running `./adguard-tui-linux` from the command line (don't forget to make it executable first with `chmod +x adguard-tui-linux`)
+```bash
+curl -o adguard-tui https://github.com/obaraelijah/adguard-tui-Term/releases/download/1.0.0/adguard-tui-linux && \
+chmod +x adguard-tui && \
+./adguard-tui
+```
+
+> In the above example, don't forget to update the URL to download the latest stable version for your operating system<br>
+> You may also just head over the the [Releases](https://github.com/obaraelijah/adguard-tui/releases) tab, download the latest executable, and double-click on it to run
 
 ### Install from Crates.io
 
