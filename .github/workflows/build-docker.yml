@@ -20,7 +20,23 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4  # Updated to v4 (latest as of Feb 2025)
+        uses: actions/checkout@v4
+
+      - name: Install latest rust toolchain
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          default: true
+          override: true
+
+      - name: Add cross-compilation targets
+        run: |
+          rustup target add aarch64-unknown-linux-musl
+          rustup target add armv7-unknown-linux-musleabihf
+          rustup target add x86_64-unknown-linux-musl
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
 
       - name: Extract tag name
         id: extract_tag
@@ -39,10 +55,12 @@ jobs:
           echo "DOCKERHUB_TAG=${DOCKERHUB_REGISTRY}/${DOCKER_USER}/${IMAGE_NAME}:${GIT_TAG}" >> $GITHUB_ENV
 
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3  # Updated to v3
+        uses: docker/setup-buildx-action@v3
+        with:
+          platforms: linux/amd64,linux/arm64,linux/arm/v7
 
       - name: Login to GitHub Container Registry
-        uses: docker/login-action@v3  # Updated to v3
+        uses: docker/login-action@v3
         with:
           registry: ${{ env.GHCR_REGISTRY }}
           username: ${{ github.actor }}
@@ -54,14 +72,14 @@ jobs:
           echo "Password set: ${{ secrets.DOCKERHUB_PASSWORD != '' && 'yes' || 'no' }}"
 
       - name: Login to DockerHub
-        uses: docker/login-action@v3  # Updated to v3
+        uses: docker/login-action@v3
         with:
           registry: ${{ env.DOCKERHUB_REGISTRY }}
           username: ${{ env.DOCKER_USER }}
           password: ${{ secrets.DOCKERHUB_PASSWORD }}
 
       - name: Build and push Docker images
-        uses: docker/build-push-action@v5  # Updated to v5
+        uses: docker/build-push-action@v5
         with:
           context: .
           file: ./Dockerfile
@@ -70,3 +88,5 @@ jobs:
           tags: |
             ${{ env.GHCR_TAG }}
             ${{ env.DOCKERHUB_TAG }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
