@@ -11,6 +11,9 @@ WORKDIR /usr/src/adguard-tui
 # Copy source code
 COPY . .
 
+# Remove existing Cargo.lock and let cargo generate a new one
+RUN rm -f Cargo.lock
+
 # Build for the target platform
 ARG TARGETPLATFORM
 RUN case "$TARGETPLATFORM" in \
@@ -19,6 +22,7 @@ RUN case "$TARGETPLATFORM" in \
         "linux/arm/v7") TARGET="armv7-unknown-linux-musleabihf" ;; \
         *) TARGET="x86_64-unknown-linux-musl" ;; \
     esac && \
+    cargo update && \
     cargo build --release --target $TARGET
 
 # Final stage
