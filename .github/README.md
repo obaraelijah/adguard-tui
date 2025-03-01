@@ -215,13 +215,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 </details>
 
-<!-- License + Copyright -->
-<p  align="center">
-  <i>© <a href="https://elijahsam.com">Elijah Samson</a> 2025</i><br>
-  <i>Licensed under <a href="https://gist.github.com/obaraelijah/143d2ee01ccc5c052a17">MIT</a></i><br>
-  <a href="https://github.com/obaraelijah"><img src="https://i.ibb.co/4KtpYxb/octocat-clean-mini.png" /></a><br>
-  <sup>Thanks for visiting :)</sup>
-</p>
+<!-- License + Copyright --
 
 <!-- Dinosaur -->
 <!-- 
