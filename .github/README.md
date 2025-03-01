@@ -26,7 +26,7 @@ docker run -it obaraelijah/adguard-tui
 ### Executable
 
 ```bash
-curl -o adguard-tui https://github.com/obaraelijah/adguard-tui-Term/releases/download/1.0.0/adguard-tui-linux && \
+curl -o adguard-tui https://github.com/obaraelijah/adguard-tui/releases/download/1.0.0/adguard-tui-linux && \
 chmod +x adguard-tui && \
 ./adguard-tui
 ```
