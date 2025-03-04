@@ -8,6 +8,52 @@
 
 ## About
 
+AdGuardian Tui - Keep an eye on your traffic, with this (unofficial) buddy for your AdGuard Home instance
+
+<!-- put screenshot here, yeah -->
+
+Features:
+- **Real-time Query Monitoring**: _Fetches and displays all DNS queries in real time, letting you see exactly what's happening on your network at any given moment_
+- **Block and Allow Stats**: _Get a quick overview of the number of queries that have been allowed, filtered or blocked by AdGuard_
+- **Historical Query Counts**: _Analyze network activity over time with historical query count data. This lets you track trends and spot any unusual activity_
+- **Filter Lists**: _AdGuardian displays your active filter lists, showing which ones are doing the most work_
+- **Top Domain Statistics**: _See which domains are getting the most queries (blocked, allowed and otherwise) in your network_
+- **Easy and Lightweight**: _AdGuardian can be run either with a super tiny Docker image, or directly with the zero-dependency executable_
+- **Good and Safe**: _Written in Rust and unit tested, the app runs locally with no external requests, and (of course) it's fully open source_
+
+
+<details>
+<summary><b>Contents</b></summary>
+
+- [About](#about)
+- [Getting Started](#getting-started)
+	- [Docker](#docker)
+	- [Executable](#executable)
+	- [Install from Crates.io](#install-from-cratesio)
+	- [Build from Source](#build-from-source)
+	- [One-Liner](#one-liner)
+- [Configuring](#configuring)
+		- [With Flags](#with-flags)
+		- [With Env Vars](#with-env-vars)
+		- [In Docker](#in-docker)
+- [Web Mode](#web-mode)
+- [Development](#development)
+	- [Prerequisites](#prerequisites)
+	- [Run](#run)
+	- [Technical Docs](#technical-docs)
+	- [Testing and Quality](#testing-and-quality)
+	- [Building](#building)
+- [Credits](#credits)
+	- [Sponsors](#sponsors)
+	- [Dependencies](#dependencies)
+- [Mirror](#mirror)
+- [Contributing](#contributing)
+		- [New here?](#new-here)
+		- [Not a coder?](#not-a-coder)
+- [License](#license)
+	
+</details>
+
 ---
 
 ## Getting Started
@@ -26,7 +72,7 @@ docker run -it obaraelijah/adguard-tui
 ### Executable
 
 ```bash
-curl -o adguard-tui https://github.com/obaraelijah/adguard-tui/releases/download/1.0.0/adguard-tui-linux && \
+curl -o adguard-tui https://github.com/obaraelijah/adguard-tui/releases/latest/download/download/1.0.0/adguard-tui-linux && \
 chmod +x adguard-tui && \
 ./adguard-tui
 ```
@@ -55,11 +101,17 @@ make
 
 ### One-Liner
 
+```bash
+bash <(curl -s https://raw.githubusercontent.com/obaraelijah/adguard-tui/main/quick-start.sh)
+```
+
+> This will run the [quick-start.sh](https://github.com/obaraelijah/adguard-tui/blob/main/quick-start.sh) Bash script, which downloads and executes the latest binary for your system type. Be sure to read and understand the file first
+
 <details>
 
 <summary><h4>Not sure which method to choose?</h4></summary>
 
-- Docker is the easiest but adds a bit of overhead
+- Docker is the easiest but needs to be installed, and adds a bit of overhead (12Mb, to be precise)
 - Where as using the executable won't require any additional dependencies
 - If you've got Rust installed, fetching from crates.io will also be both easy and performant
 - If you're system architecture isn't supported you'll need to build from source, as you also will if you wish to run a fork or make amendments to the code
@@ -120,6 +172,17 @@ docker run \
 
 The terminal dashboard can also be viewed via a browser, thanks to [ttyd](https://github.com/tsl0922/ttyd).
 
+AdGuardian is fully compatible with ttyd, so once you've [installed](https://github.com/tsl0922/ttyd#installation) it, you can just precede your run command with ttyd.
+E.g. `ttyd docker run -it obarelijah/adguardian` or `ttyd adguardian`
+
+<p align="center">
+<img width="500" src="https://i.ibb.co/YNYq3xv/adguardian-browser.png">
+</p>
+
+Another great option is [gotty](https://github.com/yudai/gotty), which works in a similar way. Note that if you want to allow user input, you'll need to pass the `-w` option.
+
+You can also combine this with a service like [ngrok](https://ngrok.com/) to forward the port, and access the dashboard from anywhere. But be careful to apply the correct access controls!
+
 ---
 
 ## Development
@@ -162,6 +225,17 @@ You can execute this directly, e.g. by running `./target/release/adguard-tui` (a
 
 ### Dependencies
 
+This project was made possible by the maintainers of the following dependencies
+- [anyhow](https://github.com/dtolnay/anyhow) - Error objecr for idiomatic error handling
+- [base64](https://github.com/marshallpierce/rust-base64) - Base 64 encoding
+- [chrono](https://github.com/chronotope/chrono) - Date + time parsing and manipulating
+- [colored](https://github.com/mackwic/colored) - Handling of terminal colors
+- [crossterm](https://github.com/crossterm-rs/crossterm) - Term manipulation for kb + mouse events
+- [futures](https://github.com/rust-lang/futures-rs) - Extension of futures for async computation
+- [reqwest](https://github.com/seanmonstar/reqwest) - HTTP client
+- [serde](https://github.com/serde-rs/serde) - Decerilization of JSON responses
+- [tokio](https://github.com/tokio-rs/tokio) - Improved futures
+- [tui-rs](https://github.com/tui-rs-revival/ratatui) - Terminal graphing
 ---
 
 ## Mirror
