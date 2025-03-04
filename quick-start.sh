@@ -7,7 +7,6 @@
 # from GitHub, check it, make it executable, and then run it.   #
 #                                                               #
 # Docs and source: https://github.com/obaraelijah/adguard-tui   #
-# Licensed: MIT (C) Alicia Sykes 2022 <https://aliciasykes.com> #
 #################################################################
 
 # Config
