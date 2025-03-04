@@ -23,30 +23,30 @@ C_YELLOW="\033[38;5;11m"
 
 # Functions for printing stuff
 function exit_script {
-  echo -e "${F_BOLD}${C_RED}Error: ${1}${NO_FORMAT}"
-  echo -e "${C_YELLOW}Unable to continue, but not to worry, there are alternate installation methods for your system."
-  echo -e "See the docs, at: ${upstream_repo} for help.${NO_FORMAT}"
-  exit 1
+    echo -e "${F_BOLD}${C_RED}Error: ${1}${NO_FORMAT}"
+    echo -e "${C_YELLOW}Unable to continue, but not to worry, there are alternate installation methods for your system."
+    echo -e "See the docs, at: ${upstream_repo} for help.${NO_FORMAT}"
+    exit 1
 }
 
 function print_heading {
-  echo -e "\n${F_BOLD}${C_AQUA}${1}${NO_FORMAT}"
+    echo -e "\n${F_BOLD}${C_AQUA}${1}${NO_FORMAT}"
 }
 function print_info {
-  echo -e "${C_AQUA}\033[2m${1}${NO_FORMAT}"
+    echo -e "${C_AQUA}\033[2m${1}${NO_FORMAT}"
 }
 
 # Check what system the user is running
 print_heading "Checking system type"
 if [[ "$OSTYPE" == "linux-gnu"* ]]; then
-  print_info "System type: Linux"
-  bin_target="adguard-linux"
+    print_info "System type: Linux"
+    bin_target="adguard-linux"
 elif [[ "$OSTYPE" == "darwin"* ]]; then
-  print_info "System type: Apple OS X"
-  bin_target="adguard-macos"
+    print_info "System type: Apple OS X"
+    bin_target="adguard-macos"
 elif [[ "$OSTYPE" == "cygwin" ]]; then
-  print_info "System type: Windows/Cygwin"
-  bin_target="adguard-windows.exe"
+    print_info "System type: Windows/Cygwin"
+    bin_target="adguard-windows.exe"
 else
     exit_script "Unsupported System"
 fi
@@ -61,16 +61,16 @@ if [ -f "$download_location" ]; then
 else
     # Download with either curl or wget, depending on what is installed
     if hash "curl" 2> /dev/null; then
-      print_info "Downloading to $download_location (with curl)"
-      curl -L -o $download_location $download_link
+        print_info "Downloading to $download_location (with curl)"
+        curl -L -o $download_location $download_link
     elif hash "wget" 2> /dev/null; then
-      print_info "Downloading to $download_location (with wget)"
-      wget \
-        --no-verbose --show-progress \
-        --progress=dot:mega -q -S \
-        -O $download_location $download_link
+        print_info "Downloading to $download_location (with wget)"
+        wget \
+            --no-verbose --show-progress \
+            --progress=dot:mega -q -S \
+            -O $download_location $download_link
     else
-      exit_script "Neither curl nor wget were found on your system"
+        exit_script "Neither curl nor wget were found on your system"
     fi
 fi
 
