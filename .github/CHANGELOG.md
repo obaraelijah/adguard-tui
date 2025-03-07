@@ -1,2 +1,2 @@
-Adds new coloumn to query log, showing the upstream DNS server used for the query
-Also updates the query log table to be responsive, so on smaller screens the upstream DNS and client IP won't be visible.
+Catch error caused by unknown AdGuard field, last_updated
+Add support for ARMv7 and ARM_64 binaries

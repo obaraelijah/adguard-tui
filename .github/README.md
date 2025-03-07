@@ -48,6 +48,7 @@ About AdGuard:
 	- [Technical Docs](#technical-docs)
 	- [Testing and Quality](#testing-and-quality)
 	- [Building](#building)
+	- [CI / CD](#ci--cd)
 - [Credits](#credits)
 	- [Sponsors](#sponsors)
 	- [Dependencies](#dependencies)
@@ -221,6 +222,26 @@ The documentation can be viewed at:
 Once your finished developing, you can build the project for production with: `cargo build --release`
 The binaries for your system will then be available in the `./target/release/` directory of the project.
 You can execute this directly, e.g. by running `./target/release/adguard-tui` (add .exe if on Windows)
+
+### CI / CD
+
+The testing, building, and publishing of the app is done with GitHub Actions.
+
+<details>
+<summary>View Current Workflow Status</summary>
+
+- Build Docker image and push to registry
+  - [![Build Docker Image 🐳](https://github.com/obaraelijah/adguard-tui/actions/workflows/build-docker.yml/badge.svg)](https://github.com/obaraelijah/adguard-tui/actions/workflows/build-docker.yml)
+- Compile binaries and upload artifacts to release
+  - [![Compile Release 🚀](https://github.com/obaraelijah/adguard-tui/actions/workflows/release-binaries.yml/badge.svg)](https://github.com/obaraelijah/adguard-tui/actions/workflows/release-binaries.yml)
+- Publish compiled app to crates.io
+  - [![Publish to Crates.io 📦](https://github.com/obaraelijah/adguard-tui/actions/workflows/push-cargo.yml/badge.svg)](https://github.com/obaraelijah/adguard-tui/actions/workflows/push-cargo.yml)
+- Generate documentation from Rustdoc, upload to GH pages
+  - [![Generate Rust Docs 📝](https://github.com/obaraelijah/adguard-tui/actions/workflows/publish-docs.yml/badge.svg)](https://github.com/obaraelijah/adguard-tui/actions/workflows/publish-docs.yml)
+- Insert list of contributors + sponsors into readme
+  - [![Insert Contributors 👥](https://github.com/obaraelijah/adguard-tui/actions/workflows/insert-contributors.yml/badge.svg)](https://github.com/obaraelijah/adguard-tui/actions/workflows/insert-contributors.yml)
+
+</details>
 
 ---
 
