@@ -1,10 +1,13 @@
-use colored::*;
-use reqwest::{Client, Error};
 use std::{
+    io:: {self, Write},
     env,
-    io::{self, Write},
-    time::Duration,
+    time::Duration
 };
+use reqwest::{Client, Error};
+use colored::*;
+
+use serde_json::Value;
+use semver::{Version};
 
 fn print_info(text: &str, is_secondary: bool) {
     if is_secondary {
@@ -14,9 +17,10 @@ fn print_info(text: &str, is_secondary: bool) {
     };
 }
 
+
 fn print_ascii_art() {
     let art = r"
-█████╗ ██████╗  ██████╗ ██╗   ██╗ █████╗ ██████╗ ██████╗ ██╗ █████╗ ███╗   ██╗
+ █████╗ ██████╗  ██████╗ ██╗   ██╗ █████╗ ██████╗ ██████╗ ██╗ █████╗ ███╗   ██╗
 ██╔══██╗██╔══██╗██╔════╝ ██║   ██║██╔══██╗██╔══██╗██╔══██╗██║██╔══██╗████╗  ██║
 ███████║██║  ██║██║  ███╗██║   ██║███████║██████╔╝██║  ██║██║███████║██╔██╗ ██║
 ██╔══██║██║  ██║██║   ██║██║   ██║██╔══██║██╔══██╗██║  ██║██║██╔══██║██║╚██╗██║
@@ -25,46 +29,71 @@ fn print_ascii_art() {
 ";
     print_info(art, false);
     print_info("\nWelcome to AdGuardian Terminal Edition!", false);
-    print_info("Terminal-based, real-time traffic monitoring and statistics for your AdGuard Home instance", true);
-    print_info(
-        "For documentation and support, please visit: https://github.com/obaraelijah/adguard-tui\n",
-        true,
-    );
+    print_info("Terminal-based, real-time traffic monitoring and statistics for your AdGuard TUI instance", true);
+    print_info("For documentation and support, please visit: https://github.com/lissy93/adguardian-term\n", true);
 }
 
-fn print_error(address: &str, error: Option<&Error>) {
+fn print_error(message: &str, sub_message: &str, error: Option<&Error>) {
     eprintln!(
-        "{}{}",
-        format!("Failed to connect to AdGuard at {}", address).red(),
+        "{}{}{}",
+        format!("{}", message).red(),
         match error {
             Some(err) => format!("\n{}", err).red().dimmed(),
             None => "".red().dimmed(),
         },
+        format!("\n{}", sub_message).yellow(),
     );
-    eprintln!(
-        "{}\n{}",
-        "\nPlease check your environmental variables and try again.".yellow(),
-        "Exiting...".blue()
-    );
+
+    std::process::exit(1);
 }
 
 fn get_env(key: &str) -> Result<String, env::VarError> {
-    env::var(key).inspect(|v| {
+    env::var(key).map(|v| {
         println!(
             "{}",
             format!(
                 "{} is set to {}",
                 key.bold(),
-                if key.contains("PASSWORD") {
-                    "******"
-                } else {
-                    v
-                }
+                if key.contains("PASSWORD") { "******" } else { &v }
             )
             .green()
         );
+        v
     })
 }
+
+/// Given a possibly undefined version number, check if it's present and supported
+fn check_version(version: Option<&str>) {
+    let min_version = Version::parse("0.107.29").unwrap();
+    
+    match version {
+        Some(version_str) => {
+            let adguard_version = Version::parse(&version_str[1..]).unwrap();
+            
+            if adguard_version < min_version {
+                print_error(
+                    "AdGuard TUI version is too old, and is now unsupported",
+                    format!("You're running AdGuard {}. Please upgrade to v{} or later.", version_str, min_version.to_string()).as_str(),
+                    None,
+                );
+            }
+        },
+        None => {
+            print_error(
+                "Unsupported AdGuard TUI version",
+                format!(
+                    concat!(
+                        "Failed to get the version number of your AdGuard TUI instance.\n",
+                        "This usually means you're running an old, and unsupported version.\n",
+                        "Please upgrade to v{} or later."
+                    ), min_version.to_string()
+                ).as_str(),
+                None,
+            );
+        }
+    }
+}
+
 
 async fn verify_connection(
     client: &Client,
@@ -74,10 +103,7 @@ async fn verify_connection(
     username: String,
     password: String,
 ) -> Result<(), Box<dyn std::error::Error>> {
-    println!(
-        "{}",
-        "\nVerifying connection to your AdGuard instance...".blue()
-    );
+    println!("{}", "\nVerifying connection to your AdGuard instance...".blue());
 
     let auth_string = format!("{}:{}", username, password);
     let auth_header_value = format!("Basic {}", base64::encode(&auth_string));
@@ -91,18 +117,37 @@ async fn verify_connection(
         .headers(headers)
         .timeout(Duration::from_secs(2))
         .send()
-        .await
-    {
+        .await {
         Ok(res) if res.status().is_success() => {
-            println!("{}", "AdGuard connection successful!\n".green());
+            // Get version string (if present), and check if valid - exit if not
+            let body: Value = res.json().await?;
+            check_version(body["version"].as_str());
+            // All good! Print success message :)
+            let safe_version = body["version"].as_str().unwrap_or("mystery version");
+            println!("{}", format!("AdGuard ({}) connection successful!\n", safe_version).green());
             Ok(())
         }
-        Ok(_) | Err(_) => {
-            print_error(&format!("{}:{}", ip, port), None);
-            std::process::exit(1);
+        // Connection failed to authenticate. Print error and exit
+        Ok(_) => {
+            print_error(
+                &format!("Authentication with AdGuard at {}:{} failed", ip, port),
+                "Please check your environmental variables and try again.",
+                None,
+            );
+            Ok(())
+        },
+        // Connection failed to establish. Print error and exit
+        Err(e) => {
+            print_error(
+                &format!("Failed to connect to AdGuard at: {}:{}", ip, port),
+                "Please check your environmental variables and try again.",
+                Some(&e),
+            );
+            Ok(())
         }
     }
 }
+
 
 pub async fn welcome() -> Result<(), Box<dyn std::error::Error>> {
     print_ascii_art();
@@ -135,18 +180,12 @@ pub async fn welcome() -> Result<(), Box<dyn std::error::Error>> {
     }
 
     // If any of the env variables or flags are not yet set, prompt the user to enter them
-    for &key in &[
-        "ADGUARD_IP",
-        "ADGUARD_PORT",
-        "ADGUARD_USERNAME",
-        "ADGUARD_PASSWORD",
-    ] {
+    for &key in &["ADGUARD_IP", "ADGUARD_PORT", "ADGUARD_USERNAME", "ADGUARD_PASSWORD"] {
         if env::var(key).is_err() {
             println!(
                 "{}",
                 format!("The {} environmental variable is not yet set", key.bold()).yellow()
             );
-
             print!("{}", format!("› Enter a value for {}: ", key).blue().bold());
             io::stdout().flush()?;
 
@@ -156,11 +195,13 @@ pub async fn welcome() -> Result<(), Box<dyn std::error::Error>> {
         }
     }
 
+    // Grab the values of the (now set) environmental variables
     let ip = get_env("ADGUARD_IP")?;
     let port = get_env("ADGUARD_PORT")?;
     let protocol = get_env("ADGUARD_PROTOCOL")?;
     let username = get_env("ADGUARD_USERNAME")?;
     let password = get_env("ADGUARD_PASSWORD")?;
-
+    
+    // Verify that we can connect, authenticate, and that version is supported (exit on failure)
     verify_connection(&client, ip, port, protocol, username, password).await
 }
