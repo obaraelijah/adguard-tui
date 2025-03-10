@@ -53,7 +53,7 @@ pub fn render_status_paragraph<'a>(
         ]),
         Line::from(vec![
             Span::styled("Avg Processing Time: ", Style::default()),
-            Span::styled(format!("{}ms", stats.avg_processing_time), value_style),
+            Span::styled(format!("{}ms", (stats.avg_processing_time * 1000.0) as i16), value_style),
         ]),
         Line::from(vec![
             Span::styled("Version: ", Style::default()),
