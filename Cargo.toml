@@ -1,6 +1,6 @@
 [package]
 name = "adguard-tui"
-version = "1.4.0"
+version = "1.5.0"
 edition = "2021"
 authors = ["Elijah Samson"]
 description = "Terminal-based, real-time traffic monitoring and statistics for your AdGuard Home instance "
